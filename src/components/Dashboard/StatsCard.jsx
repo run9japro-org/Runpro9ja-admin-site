@@ -12,10 +12,10 @@ const StatsCard = ({ title, value, subtitle, icon }) => {
               icon
             )}
           </div>
-          <h3 className="text-2xl  text-gray-600">{title}</h3>
+          <h3 className="text-xl md:text-2xl  text-gray-600">{title}</h3>
         </div>
       </div>
-      <p className="text-3xl font-bold text-primary text-end mx-12">{value}</p>
+      <p className="text-2xl md:text-3xl font-bold text-primary text-end mx-12">{value}</p>
       {subtitle && (
         <p className="text-xs text-gray-500 mt-1 text-end">{subtitle}</p>
       )}

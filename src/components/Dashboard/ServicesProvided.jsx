@@ -72,7 +72,7 @@ const ServicesProvided = () => {
           </div>
 
           {/* Legend */}
-          <div className="flex flex-col gap-3 text-sm md:w-1/2">
+          <div className="flex flex-col gap-3 text-md w-full md:w-1/2 ">
             {data.map((item, index) => (
               <div key={index} className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
