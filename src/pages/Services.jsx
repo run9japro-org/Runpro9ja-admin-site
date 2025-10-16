@@ -272,7 +272,7 @@ const Services = () => {
               <tbody className=" divide-y divide-gray-200">
                 {deliveryDetails.map((delivery, index) => (
                   <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-md font-semibold font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-md font-semibold  text-gray-900">
                       {delivery.orderId}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-md font-semibold text-gray-900">
