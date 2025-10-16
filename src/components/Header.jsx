@@ -1,8 +1,65 @@
-import React from "react";
-import notification from "../assets/icons/notification.png";
+import React, { useState, useEffect, useRef } from "react";
+import notificationIcon from "../assets/icons/notification.png";
 import admin from "../assets/icons/admin.png";
+import axios from "axios";
+
 const Header = ({ sidebarOpen, setSidebarOpen, activePage }) => {
-  // Function to get page title based on active page
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const dropdownRef = useRef(null);
+  const notifRef = useRef(null);
+  const [user, setUser] = useState({ name: "Admin", image: admin });
+
+  // Load user data (localStorage)
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser) {
+      setUser({
+        name: storedUser.name || "Admin",
+        image: storedUser.image || admin,
+      });
+    }
+  }, []);
+
+  // Fetch notifications from backend
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("/api/notifications", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data.notifications || [];
+
+        setNotifications(data);
+
+      } catch (err) {
+        console.error("Failed to fetch notifications", err);
+      }
+    };
+    fetchNotifications();
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setDropdownOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const getPageTitle = () => {
     const pageTitles = {
       dashboard: "Dashboard",
@@ -18,15 +75,24 @@ const Header = ({ sidebarOpen, setSidebarOpen, activePage }) => {
     return pageTitles[activePage] || "Dashboard";
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  };
+  const unreadCount = Array.isArray(notifications)
+    ? notifications.filter((n) => !n.read).length
+    : 0;
+
+
   return (
-    <header className="bg-gray-100 ">
-      <div className="flex items-center justify-between px-2 md:px-6 py-4">
-        {/* Left Section: Menu button and Page Title */}
-        <div className="flex items-center space-x-2 md:space-x-4">
-          {/* Mobile menu button */}
+    <header className="bg-gray-100 border-b border-gray-200">
+      <div className="flex items-center justify-between px-3 md:px-6 py-4">
+        {/* Left Section */}
+        <div className="flex items-center space-x-3 md:space-x-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+            className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"
           >
             <svg
               className="h-6 w-6"
@@ -42,25 +108,21 @@ const Header = ({ sidebarOpen, setSidebarOpen, activePage }) => {
               />
             </svg>
           </button>
-
-          {/* Page Title */}
-          <div className="flex flex-col">
-            <h1 className="text-lg md:text-2xl font-medium text-gray-900">
-              {getPageTitle()}
-            </h1>
-          </div>
+          <h1 className="text-lg md:text-2xl font-medium text-gray-900">
+            {getPageTitle()}
+          </h1>
         </div>
 
-        {/* Search bar */}
-        <div className="relative md:w-3/5 space-x-4">
+        {/* Search Bar */}
+        <div className="relative hidden md:block w-2/5">
           <input
             type="text"
             placeholder="Search..."
-            className="md:w-full mx-auto outline-none pl-14 pr-4 py-2 border bg-gray-50 border-gray-300 rounded-2xl "
+            className="w-full outline-none pl-12 pr-4 py-2 border bg-gray-50 border-gray-300 rounded-2xl"
           />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg
-              className="h-7 w-7 text-gray-400"
+              className="h-6 w-6 text-gray-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -74,30 +136,67 @@ const Header = ({ sidebarOpen, setSidebarOpen, activePage }) => {
             </svg>
           </div>
         </div>
-        {/* Right Section: Search and User Profile */}
-        <div className="flex  ">
-          {/* Notification and User Profile */}
-          <div className="flex items-center md:space-x-4 ">
-            {/* Notification Bell */}
-            <div className="bg-gray-50 rounded border border-gray-200">
-              <button className="relative p-2  text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full">
-                <img
-                  src={notification}
-                  alt="notification icon"
-                  className="w-5 h-5"
-                />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-            </div>
 
-            {/* User Profile */}
-            <div className="flex items-center space-x-3 bg-gray-50 px-2 rounded border border-gray-200">
-              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-white font-semibold">
-                <img src={admin} alt="admin icon" />
+        {/* Right Section */}
+        <div className="flex items-center space-x-3 md:space-x-5 relative">
+          {/* Notifications */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full border border-gray-200 bg-gray-50"
+            >
+              <img
+                src={notificationIcon}
+                alt="notification"
+                className="w-5 h-5"
+              />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+              )}
+            </button>
+
+            {/* Notification Dropdown */}
+            {notifOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-md py-2 z-50 max-h-96 overflow-y-auto">
+                <div className="px-4 py-2 border-b border-gray-100 font-medium text-gray-700">
+                  Notifications
+                </div>
+                {notifications.length > 0 ? (
+                  notifications.map((n) => (
+                    <div
+                      key={n._id}
+                      className={`px-4 py-3 text-sm ${n.read
+                        ? "bg-white hover:bg-gray-50"
+                        : "bg-gray-50 hover:bg-gray-100"
+                        } border-b border-gray-100`}
+                    >
+                      <p className="font-medium text-gray-800">{n.title}</p>
+                      <p className="text-gray-500 text-xs">{n.message}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-gray-500 text-sm">
+                    No notifications yet.
+                  </div>
+                )}
               </div>
-              {/* Dropdown arrow */}
+            )}
+          </div>
+
+          {/* User Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center space-x-3 bg-gray-50 px-3 py-2 rounded border border-gray-200 hover:bg-gray-100 transition"
+            >
+              <img
+                src={user.image}
+                alt="user"
+                className="w-8 h-8 rounded-full object-cover"
+              />
               <svg
-                className="h-4 w-4 text-gray-400"
+                className={`h-4 w-4 text-gray-500 transform transition-transform ${dropdownOpen ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -109,7 +208,24 @@ const Header = ({ sidebarOpen, setSidebarOpen, activePage }) => {
                   d="M19 9l-7 7-7-7"
                 />
               </svg>
-            </div>
+            </button>
+
+            {/* Dropdown Menu */}
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-md py-2 z-50">
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <p className="text-sm text-gray-700 font-medium">
+                    {user.name}
+                  </p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import {
   FaArrowUp,
   FaArrowDown,
-  FaInfoCircle,
-  FaExchangeAlt,
+
 } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import { RiArrowRightDownFill } from "react-icons/ri";
