@@ -1,0 +1,166 @@
+Admin Panel Documentation
+Overview
+The admin panel provides comprehensive management capabilities for platform administrators with role-based access control.
+
+Role-Based Access Control
+Admin Roles Hierarchy:
+SUPER_ADMIN - Full system access
+
+ADMIN_HEAD - Management access (can manage other admins except SUPER_ADMIN)
+
+ADMIN_AGENT_SERVICE - Agent and service management
+
+ADMIN_CUSTOMER_SERVICE - Customer support and complaints
+
+Core Modules
+1. Admin Management
+Access: SUPER_ADMIN, ADMIN_HEAD
+
+Features:
+
+Create new admin accounts
+
+List all administrators
+
+Reset admin passwords
+
+Delete admin accounts
+
+Delete any user account
+
+Key Functions:
+
+Automatic temporary password generation
+
+Email notifications for new accounts
+
+Role validation and restrictions
+
+2. Analytics & Dashboard
+Access: SUPER_ADMIN, ADMIN_HEAD, ADMIN_AGENT_SERVICE
+
+Features:
+
+Company performance overview
+
+Period-based analytics (week/month/year)
+
+Revenue tracking
+
+User/agent growth metrics
+
+Service category breakdown
+
+Weekly service trends
+
+Metrics Tracked:
+
+Total users, agents, orders, revenue
+
+New registrations by period
+
+Service category distribution
+
+Payment success rates
+
+3. Agent Management
+Access: SUPER_ADMIN, ADMIN_HEAD, ADMIN_AGENT_SERVICE
+
+Features:
+
+View all agents with pagination
+
+Filter by verification status
+
+Search agent profiles
+
+Verify/reject agent applications
+
+Send verification status notifications
+
+4. Service Request Management
+Access: All admin roles
+
+Features:
+
+View all service orders
+
+Filter by status, service type, date range
+
+Order details with customer/agent information
+
+Status tracking
+
+5. Payment Management
+Access: SUPER_ADMIN, ADMIN_HEAD
+
+Features:
+
+View all payment transactions
+
+Payment statistics and revenue reports
+
+Filter by status and date range
+
+Success/failure rate analysis
+
+6. Complaint Management
+Access: SUPER_ADMIN, ADMIN_HEAD, ADMIN_CUSTOMER_SERVICE
+
+Features:
+
+Customer complaint management
+
+Status tracking
+
+Type-based filtering
+
+Security Features
+Role-based endpoint protection
+
+Password hashing with bcrypt
+
+Temporary password system
+
+Email notifications for security events
+
+Prevention of privilege escalation
+
+Email Notifications
+The system automatically sends emails for:
+
+New admin account creation
+
+Password resets
+
+Agent verification status updates
+
+Security-related actions
+
+To make this documentation complete, could you provide:
+
+The actual API endpoints (routes) for each function
+
+Request/Response examples for key endpoints
+
+Any frontend components or UI expectations
+
+Authentication requirements (JWT, headers, etc.)
+
+Error response formats
+
+With the endpoints, I can create a detailed API reference section that shows exactly how to interact with each feature, including:
+
+HTTP methods
+
+URL paths
+
+Required parameters
+
+Request bodies
+
+Success/error responses
+
+Authentication headers
+
+you understand?
