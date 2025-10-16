@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import StatsCard from "../components/Dashboard/StatsCard";
 import ServiceProviders from "../components/Dashboard/ServiceProviders";
@@ -11,36 +12,75 @@ import { getCompanyAnalytics } from "../services/adminService";
 
 const Dashboard = () => {
   const [statsData, setStatsData] = useState([
-    { title: "Total service provided", value: "0", icon: icon1 },
-    { title: "Total service completed", value: "0", icon: <IoIosCheckmarkCircleOutline size="20" color="#0D7957CC" /> },
-    { title: "Total service pending", value: "0", icon: icon3 },
-    { title: "Total Sales Amount", value: "#0.00", icon: icon4 },
+    { title: "Total Services", value: "0", icon: icon1 },
+    { title: "Completed Services", value: "0", icon: <IoIosCheckmarkCircleOutline size="20" color="#0D7957CC" /> },
+    { title: "Pending Services", value: "0", icon: icon3 },
+    { title: "Total Revenue", value: "₦0.00", icon: icon4 },
   ]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const data = await getCompanyAnalytics();
-        // adjust field names based on your backend response
-        setStatsData([
-          { title: "Total service provided", value: data.totalOrders || "0", icon: icon1 },
-          { title: "Total service completed", value: data.completedOrders || "0", icon: <IoIosCheckmarkCircleOutline size="20" color="#0D7957CC" /> },
-          { title: "Total service pending", value: data.pendingOrders || "0", icon: icon3 },
-          { title: "Total Sales Amount", value: `₦${data.totalRevenue?.toLocaleString() || "0.00"}`, icon: icon4 },
-        ]);
+        setLoading(true);
+        const response = await getCompanyAnalytics();
+        
+        if (response.success) {
+          const analytics = response.analytics;
+          
+          setStatsData([
+            { 
+              title: "Total Services", 
+              value: (analytics.totals?.orders || 0).toString(), 
+              icon: icon1 
+            },
+            { 
+              title: "Completed Services", 
+              value: (analytics.completedOrders || 0).toString(), 
+              icon: <IoIosCheckmarkCircleOutline size="20" color="#0D7957CC" /> 
+            },
+            { 
+              title: "Pending Services", 
+              value: (analytics.pendingOrders || 0).toString(), 
+              icon: icon3 
+            },
+            { 
+              title: "Total Revenue", 
+              value: `₦${(analytics.totals?.revenue || 0).toLocaleString()}`, 
+              icon: icon4 
+            },
+          ]);
+        }
       } catch (error) {
         console.error("Error fetching analytics:", error);
+      } finally {
+        setLoading(false);
       }
     };
+    
     fetchAnalytics();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-gray-600">Loading dashboard data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {statsData.map((stat, index) => (
-          <StatsCard key={index} title={stat.title} icon={stat.icon} value={stat.value} />
+          <StatsCard 
+            key={index} 
+            title={stat.title} 
+            icon={stat.icon} 
+            value={stat.value} 
+            loading={loading}
+          />
         ))}
       </div>
 
