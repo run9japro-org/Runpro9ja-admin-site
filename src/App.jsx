@@ -4,7 +4,7 @@ import Header from "./components/Header";
 import Dashboard from "./pages/Dashboard";
 import Services from "./pages/Services";
 import Delivery from "./pages/Delivery";
-// import ServiceProviders from "./pages/ServiceProviders";
+import ServiceProviders from "./pages/ServiceProviders";
 // import Support from "./pages/Support";
 // import Payments from "./pages/Payments";
 // import Settings from "./pages/Settings";

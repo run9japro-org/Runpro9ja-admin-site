@@ -45,7 +45,7 @@ const Header = ({ sidebarOpen, setSidebarOpen, activePage }) => {
 
           {/* Page Title */}
           <div className="flex flex-col">
-            <h1 className="text-2xl font-medium text-gray-900">
+            <h1 className="text-lg md:text-2xl font-medium text-gray-900">
               {getPageTitle()}
             </h1>
           </div>
