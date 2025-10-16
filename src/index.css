@@ -17,6 +17,9 @@ body{
   background-color: var(--primary-color);
 }
 
+.bg-customer{
+  background-color: #0D795733;
+}
 .text-primary {
   color: var(--primary-color);
 }
