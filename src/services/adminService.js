@@ -63,3 +63,135 @@ export const getRecentPayments = async (limit = 10) => {
     };
   }
 };
+
+export const getServiceRequests = async (limit = 50, status = '') => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/service-requests`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { limit, status }
+    });
+    
+    // Ensure we always return a valid structure
+    if (response.data && typeof response.data === 'object') {
+      return response.data;
+    } else {
+      return {
+        success: false,
+        serviceRequests: []
+      };
+    }
+  } catch (error) {
+    console.error('getServiceRequests error:', error);
+    return {
+      success: false,
+      serviceRequests: []
+    };
+  }
+};
+// Delivery Tracking Services
+export const getActiveDeliveries = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/active-deliveries`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('getActiveDeliveries error:', error);
+    throw error;
+  }
+};
+
+// Add these to your adminService.js
+
+// Service Providers
+// Update your adminService.js for better error handling
+export const getServiceProviders = async (limit = 50, status = '') => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/service-providers`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { limit, status }
+    });
+    
+    // Ensure we always return a valid structure with arrays
+    if (response.data && response.data.success) {
+      return {
+        success: true,
+        serviceProviders: Array.isArray(response.data.serviceProviders) 
+          ? response.data.serviceProviders 
+          : []
+      };
+    } else {
+      return {
+        success: false,
+        serviceProviders: []
+      };
+    }
+  } catch (error) {
+    console.error('getServiceProviders error:', error);
+    return {
+      success: false,
+      serviceProviders: []
+    };
+  }
+};
+
+export const getPotentialProviders = async (limit = 20) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/potential-providers`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { limit }
+    });
+    
+    // Ensure we always return a valid structure with arrays
+    if (response.data && response.data.success) {
+      return {
+        success: true,
+        potentialProviders: Array.isArray(response.data.potentialProviders) 
+          ? response.data.potentialProviders 
+          : []
+      };
+    } else {
+      return {
+        success: false,
+        potentialProviders: []
+      };
+    }
+  } catch (error) {
+    console.error('getPotentialProviders error:', error);
+    return {
+      success: false,
+      potentialProviders: []
+    };
+  }
+};
+
+// Delivery Details
+export const getDeliveryDetails = async (limit = 20) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/delivery-details`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { limit }
+    });
+    
+    // Ensure we always return a valid structure
+    if (response.data && typeof response.data === 'object') {
+      return response.data;
+    } else {
+      return {
+        success: false,
+        deliveryDetails: []
+      };
+    }
+  } catch (error) {
+    console.error('getDeliveryDetails error:', error);
+    return {
+      success: false,
+      deliveryDetails: []
+    };
+  }
+};

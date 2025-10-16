@@ -11,10 +11,10 @@ const PaymentHistory = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log("Starting to fetch data...");
+        // console.log("Starting to fetch data...");
         
         // Fetch top agents
-        console.log("Fetching top agents...");
+        // console.log("Fetching top agents...");
         const agentsResponse = await getTopAgents(5);
         console.log("Agents response:", agentsResponse);
         
@@ -27,19 +27,19 @@ const PaymentHistory = () => {
         }
 
         // Fetch recent payments
-        console.log("Fetching recent payments...");
+        // console.log("Fetching recent payments...");
         const paymentsResponse = await getRecentPayments(5);
-        console.log("Payments response:", paymentsResponse);
+        // console.log("Payments response:", paymentsResponse);
         
         if (paymentsResponse.success) {
           setPaymentHistory(paymentsResponse.payments);
-          console.log("Payments data set:", paymentsResponse.payments);
+          // console.log("Payments data set:", paymentsResponse.payments);
         } else {
           console.log("Using sample payments data");
           setPaymentHistory(getSamplePaymentHistory());
         }
         
-        console.log("Data fetch completed successfully");
+        // console.log("Data fetch completed successfully");
         
       } catch (err) {
         console.error("Error fetching data:", err);
