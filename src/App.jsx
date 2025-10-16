@@ -7,13 +7,11 @@ import Services from "./pages/Services";
 import Delivery from "./pages/Delivery";
 import ServiceProviders from "./pages/ServiceProviders";
 import Support from "./pages/Support";
-<<<<<<< HEAD
 import Payments from "./pages/Payments.jsx";
-=======
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 // import Payments from "./pages/Payments";
->>>>>>> 4c753f65cd533c2ebec56ea99e331e187d1e62cb
+
 // import Settings from "./pages/Settings";
 // import Accounts from "./pages/Accounts";
 // import Complaint from "./pages/Complaint";
@@ -34,8 +32,8 @@ function App() {
         return <ServiceProviders />;
       case "support":
         return <Support />;
-      // case "payments":
-      //   return <Payments />;
+      case "payments":
+        return <Payments />;
       // case "settings":
       //   return <Settings />;
       // case "accounts":
