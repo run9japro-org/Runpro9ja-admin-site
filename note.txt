@@ -164,3 +164,5 @@ Success/error responses
 Authentication headers
 
 you understand?
+
+Customer service list  click edit and Delete and also username and generate password

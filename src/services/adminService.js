@@ -195,3 +195,141 @@ export const getDeliveryDetails = async (limit = 20) => {
     };
   }
 };
+
+// Add these to your adminService.js
+
+// Support Employees
+export const getSupportEmployees = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/support-employees`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('getSupportEmployees error:', error);
+    throw error;
+  }
+};
+
+// Pending Requests
+export const getPendingRequests = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/pending-requests`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('getPendingRequests error:', error);
+    throw error;
+  }
+};
+
+// Support Messages
+export const getSupportMessages = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/support-messages`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('getSupportMessages error:', error);
+    throw error;
+  }
+};
+
+// Add these to your adminService.js
+
+// Payments Summary
+export const getPaymentsSummary = async (period = 'daily') => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/payments-summary`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { period }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('getPaymentsSummary error:', error);
+    throw error;
+  }
+};
+
+// Payments Inflow
+export const getPaymentsInflow = async (limit = 50, status = '') => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/payments-inflow`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { limit, status }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('getPaymentsInflow error:', error);
+    throw error;
+  }
+};
+
+// Payments Outflow
+export const getPaymentsOutflow = async (limit = 50) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/payments-outflow`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { limit }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('getPaymentsOutflow error:', error);
+    throw error;
+  }
+};
+
+// Add these to your adminService.js
+
+// Accounts Management
+export const getAccounts = async (type = 'users', page = 1, limit = 13, search = '') => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/accounts`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { type, page, limit, search }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('getAccounts error:', error);
+    throw error;
+  }
+};
+
+// Delete Accounts
+export const deleteAccounts = async (accountIds) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.delete(`${API_URL}/admin/accounts`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { accountIds }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('deleteAccounts error:', error);
+    throw error;
+  }
+};
+
+// Update Account
+export const updateAccount = async (accountId, updateData) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.put(`${API_URL}/admin/accounts/${accountId}`, 
+      updateData,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('updateAccount error:', error);
+    throw error;
+  }
+};

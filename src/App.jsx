@@ -17,7 +17,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // import Payments from "./pages/Payments";
 
 // import Settings from "./pages/Settings";
-// import Accounts from "./pages/Accounts";
+import Accounts from "./pages/Accounts";
 // import Complaint from "./pages/Complaint";
 
 function App() {
@@ -40,8 +40,8 @@ function App() {
         return <Payments />;
       // case "settings":
       //   return <Settings />;
-      // case "accounts":
-      //   return <Accounts />;
+      case "accounts":
+        return <Accounts />;
       // case "complaint":
       //   return <Complaint />;
       default:
