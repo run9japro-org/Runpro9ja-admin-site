@@ -18,7 +18,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // import Settings from "./pages/Settings";
 import Accounts from "./pages/Accounts";
-// import Complaint from "./pages/Complaint";
+import ComplaintsManagement from "./pages/Complaint.jsx";
 
 function App() {
   const [activePage, setActivePage] = useState("dashboard");
@@ -42,8 +42,8 @@ function App() {
       //   return <Settings />;
       case "accounts":
         return <Accounts />;
-      // case "complaint":
-      //   return <Complaint />;
+      case "complaint":
+        return <ComplaintsManagement />;
       default:
         return <Dashboard />;
     }

@@ -15,6 +15,7 @@ const Sidebar = ({
   setActivePage,
   sidebarOpen,
   setSidebarOpen,
+  onLogout // Add this prop for logout handling
 }) => {
   // Main navigation items
   const mainItems = [
@@ -26,13 +27,55 @@ const Sidebar = ({
     { id: "payments", label: "Payment History", icon: icon6 },
   ];
 
-
   // Settings navigation items
   const settingsItems = [
     { id: "accounts", label: "Accounts", icon: icon7 },
     { id: "complaint", label: "Complaint", icon: icon8 },
     { id: "logout", label: "Log out", icon: icon9 },
   ];
+
+  const handleLogout = async () => {
+    try {
+      // Call the parent component's logout handler
+      if (onLogout) {
+        await onLogout();
+      } else {
+        // Fallback logout implementation
+        await defaultLogout();
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const defaultLogout = async () => {
+    // Clear localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    
+    // Clear sessionStorage
+    sessionStorage.clear();
+    
+    // If you're using cookies, clear them too
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+    
+    // Redirect to login page
+    window.location.href = "/login";
+  };
+
+  const handleNavigation = (item) => {
+    if (item.id === "logout") {
+      handleLogout();
+    } else {
+      setActivePage(item.id);
+      setSidebarOpen(false);
+    }
+  };
 
   const MenuSection = ({ title, items, showDivider = false }) => (
     <div
@@ -48,20 +91,12 @@ const Sidebar = ({
       {items.map((item) => (
         <button
           key={item.id}
-          onClick={() => {
-            if (item.id !== "logout") {
-              setActivePage(item.id);
-              setSidebarOpen(false);
-            } else {
-              // Handle logout logic here
-              console.log("Logout clicked");
-            }
-          }}
+          onClick={() => handleNavigation(item)}
           className={`w-full cursor-pointer flex items-center text-md pl-8 py-3 text-left transition-colors duration-200 hover:bg-opacity-10 ${
             activePage === item.id
               ? "  text-gray-200  bg-primary rounded-2xl "
               : "text-gray-200 text-opacity-90"
-          } ${item.id === "logout" ? "text-gray-200 " : ""}`}
+          } ${item.id === "logout" ? "text-gray-200 hover:text-red-200" : ""}`}
         >
           <img src={item.icon} alt={item.label} className="w-6 h-6 mr-3" />
           <span className="text-md ">{item.label}</span>
