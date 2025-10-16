@@ -8,7 +8,9 @@ import Delivery from "./pages/Delivery";
 import ServiceProviders from "./pages/ServiceProviders";
 import Support from "./pages/Support";
 
+
 import Payments from "./pages/Payments.jsx";
+
 
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -34,8 +36,8 @@ function App() {
         return <ServiceProviders />;
       case "support":
         return <Support />;
-      // case "payments":
-      //   return <Payments />;
+      case "payments":
+        return <Payments />;
       // case "settings":
       //   return <Settings />;
       // case "accounts":
