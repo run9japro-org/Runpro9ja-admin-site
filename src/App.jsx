@@ -6,7 +6,7 @@ import Services from "./pages/Services";
 import Delivery from "./pages/Delivery";
 import ServiceProviders from "./pages/ServiceProviders";
 import Support from "./pages/Support";
-// import Payments from "./pages/Payments";
+import Payments from "./pages/Payments.jsx";
 // import Settings from "./pages/Settings";
 // import Accounts from "./pages/Accounts";
 // import Complaint from "./pages/Complaint";
