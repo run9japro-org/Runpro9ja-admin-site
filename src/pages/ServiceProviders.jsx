@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getServiceProviders, getPotentialProviders } from "../services/adminService";
+import { Check, X, MoreVertical, Eye, UserCheck, UserX, Mail, Phone, Loader } from "lucide-react";
 
 const ServiceProviders = () => {
   const [serviceProviders, setServiceProviders] = useState([]);
@@ -8,6 +9,11 @@ const ServiceProviders = () => {
   const [loadingPotential, setLoadingPotential] = useState(true);
   const [error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [activeMenu, setActiveMenu] = useState(null);
+  const [verificationNotes, setVerificationNotes] = useState('');
+  const [processingVerification, setProcessingVerification] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,6 +52,49 @@ const ServiceProviders = () => {
     fetchData();
   }, [filterStatus]);
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setActiveMenu(null);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  // API call to verify agent
+  const verifyAgent = async (agentId, status, notes = '') => {
+    try {
+      setProcessingVerification(true);
+      const token = localStorage.getItem("token");
+      const API_URL = "https://runpro9ja-pxqoa.ondigitalocean.app/api";
+      
+      const response = await fetch(`${API_URL}/admin/agents/${agentId}/verify`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          status: status,
+          notes: notes
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Verification failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Verification error:', error);
+      throw error;
+    } finally {
+      setProcessingVerification(false);
+    }
+  };
+
   // Status badge component
   const StatusBadge = ({ status }) => {
     const getStatusColor = (status) => {
@@ -53,45 +102,26 @@ const ServiceProviders = () => {
       switch (statusStr) {
         case "active":
         case "verified":
-          return "text-green-700";
+          return "text-green-700 bg-green-50 border border-green-200";
         case "waitlisted":
         case "pending":
-          return "text-yellow-600";
+          return "text-yellow-600 bg-yellow-50 border border-yellow-200";
         case "reviewing":
-          return "text-blue-600";
+          return "text-blue-600 bg-blue-50 border border-blue-200";
         case "cancelled":
         case "rejected":
         case "inactive":
-          return "text-red-600";
+          return "text-red-600 bg-red-50 border border-red-200";
         default:
-          return "text-gray-600";
-      }
-    };
-
-    const getStatusDotColor = (status) => {
-      const statusStr = String(status || '').toLowerCase();
-      switch (statusStr) {
-        case "active":
-        case "verified":
-          return "bg-green-700";
-        case "waitlisted":
-        case "pending":
-          return "bg-yellow-600";
-        case "reviewing":
-          return "bg-blue-600";
-        case "cancelled":
-        case "rejected":
-        case "inactive":
-          return "bg-red-600";
-        default:
-          return "bg-gray-600";
+          return "text-gray-600 bg-gray-50 border border-gray-200";
       }
     };
 
     const formatStatus = (status) => {
       const statusStr = String(status || '');
       const statusMap = {
-        'verified': 'Active',
+        'verified': 'Verified',
+        'active': 'Active',
         'pending': 'Pending',
         'reviewing': 'Reviewing',
         'waitlisted': 'Waitlisted',
@@ -104,15 +134,327 @@ const ServiceProviders = () => {
 
     return (
       <span
-        className={`flex items-center font-semibold text-sm ${getStatusColor(status)}`}
+        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}
       >
-        <span
-          className={`w-2 h-2 rounded-full mr-2 ${getStatusDotColor(status)}`}
-        ></span>
         {formatStatus(status)}
       </span>
     );
   };
+
+  // Action Menu for Potential Providers
+  const ActionMenu = ({ provider, onVerify, onReject, onViewDetails }) => {
+    const handleMenuClick = (e) => {
+      e.stopPropagation();
+      setActiveMenu(activeMenu === provider.id ? null : provider.id);
+    };
+
+    const handleVerify = (e) => {
+      e.stopPropagation();
+      onVerify(provider);
+      setActiveMenu(null);
+    };
+
+    const handleReject = (e) => {
+      e.stopPropagation();
+      onReject(provider);
+      setActiveMenu(null);
+    };
+
+    const handleViewDetails = (e) => {
+      e.stopPropagation();
+      onViewDetails(provider);
+      setActiveMenu(null);
+    };
+
+    return (
+      <div className="relative">
+        <button
+          onClick={handleMenuClick}
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <MoreVertical className="w-4 h-4 text-gray-500" />
+        </button>
+
+        {activeMenu === provider.id && (
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+            <div className="py-1">
+              <button
+                onClick={handleViewDetails}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                View Details
+              </button>
+              <button
+                onClick={handleVerify}
+                className="flex items-center w-full px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition-colors"
+              >
+                <UserCheck className="w-4 h-4 mr-2" />
+                Verify Provider
+              </button>
+              <button
+                onClick={handleReject}
+                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <UserX className="w-4 h-4 mr-2" />
+                Reject Application
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Verification Modal
+  const VerificationModal = ({ provider, onClose, onVerify, onReject }) => {
+    if (!provider) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">
+                Verify Service Provider
+              </h3>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                disabled={processingVerification}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Provider Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900">{provider.name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Applied For
+                  </label>
+                  <p className="text-sm text-gray-900">{provider.appliedFor}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Experience
+                  </label>
+                  <p className="text-sm text-gray-900">{provider.experience}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-4 h-4 text-gray-400" />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <p className="text-sm text-gray-900">{provider.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4 text-gray-400" />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone
+                    </label>
+                    <p className="text-sm text-gray-900">{provider.phone}</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Location
+                  </label>
+                  <p className="text-sm text-gray-900">{provider.location}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Additional Information
+              </label>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  {provider.additionalInfo || "No additional information provided."}
+                </p>
+              </div>
+            </div>
+
+            {/* Verification Notes */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Verification Notes
+              </label>
+              <textarea
+                placeholder="Add notes about this verification..."
+                className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                rows="3"
+                value={verificationNotes}
+                onChange={(e) => setVerificationNotes(e.target.value)}
+                disabled={processingVerification}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                disabled={processingVerification}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => onReject(provider)}
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+                disabled={processingVerification}
+              >
+                {processingVerification ? (
+                  <Loader className="w-4 h-4 animate-spin" />
+                ) : (
+                  <UserX className="w-4 h-4" />
+                )}
+                <span>Reject</span>
+              </button>
+              <button
+                onClick={() => onVerify(provider)}
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                disabled={processingVerification}
+              >
+                {processingVerification ? (
+                  <Loader className="w-4 h-4 animate-spin" />
+                ) : (
+                  <UserCheck className="w-4 h-4" />
+                )}
+                <span>Verify Provider</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Handler functions
+  const handleVerifyProvider = async (provider) => {
+    try {
+      console.log("Verifying provider:", provider);
+      
+      const result = await verifyAgent(provider.id, 'verified', verificationNotes);
+      
+      alert(`Provider ${provider.name} has been verified successfully!`);
+      
+      // Update the provider status in the state
+      setPotentialProviders(prev => 
+        prev.map(p => 
+          p.id === provider.id ? { ...p, status: 'verified' } : p
+        )
+      );
+      
+      // Also add to service providers if needed
+      setServiceProviders(prev => [...prev, {
+        ...provider,
+        status: 'active',
+        workRate: 0, // Initial work rate
+        agentId: `SP${Date.now()}` // Generate new agent ID
+      }]);
+      
+      setShowVerificationModal(false);
+      setVerificationNotes('');
+    } catch (error) {
+      alert(`Failed to verify provider: ${error.message}`);
+    }
+  };
+
+  const handleRejectProvider = async (provider) => {
+    try {
+      console.log("Rejecting provider:", provider);
+      
+      if (window.confirm(`Are you sure you want to reject ${provider.name}'s application?`)) {
+        const result = await verifyAgent(provider.id, 'rejected', verificationNotes);
+        
+        alert(`Provider ${provider.name} has been rejected.`);
+        
+        // Update the provider status in the state
+        setPotentialProviders(prev => 
+          prev.map(p => 
+            p.id === provider.id ? { ...p, status: 'rejected' } : p
+          )
+        );
+        
+        setShowVerificationModal(false);
+        setVerificationNotes('');
+      }
+    } catch (error) {
+      alert(`Failed to reject provider: ${error.message}`);
+    }
+  };
+
+  const handleViewProviderDetails = (provider) => {
+    setSelectedProvider(provider);
+    setVerificationNotes('');
+    setShowVerificationModal(true);
+  };
+
+  // Quick action buttons for table rows
+  const QuickActionButtons = ({ provider }) => (
+    <div className="flex space-x-1">
+      <button
+        onClick={async (e) => {
+          e.stopPropagation();
+          try {
+            const result = await verifyAgent(provider.id, 'verified');
+            alert(`Provider ${provider.name} has been verified!`);
+            setPotentialProviders(prev => 
+              prev.map(p => 
+                p.id === provider.id ? { ...p, status: 'verified' } : p
+              )
+            );
+          } catch (error) {
+            alert(`Failed to verify provider: ${error.message}`);
+          }
+        }}
+        className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
+        title="Verify Provider"
+        disabled={processingVerification}
+      >
+        {processingVerification ? <Loader className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+      </button>
+      <button
+        onClick={async (e) => {
+          e.stopPropagation();
+          if (window.confirm(`Reject ${provider.name}'s application?`)) {
+            try {
+              const result = await verifyAgent(provider.id, 'rejected');
+              alert(`Provider ${provider.name} has been rejected.`);
+              setPotentialProviders(prev => 
+                prev.map(p => 
+                  p.id === provider.id ? { ...p, status: 'rejected' } : p
+                )
+              );
+            } catch (error) {
+              alert(`Failed to reject provider: ${error.message}`);
+            }
+          }
+        }}
+        className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+        title="Reject Provider"
+        disabled={processingVerification}
+      >
+        {processingVerification ? <Loader className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+      </button>
+    </div>
+  );
 
   // Safe data access helper functions
   const safeString = (value, fallback = 'N/A') => {
@@ -163,6 +505,7 @@ const ServiceProviders = () => {
   const getSamplePotentialProviders = () => {
     return [
       {
+        id: "P001",
         name: "Ajayi Suleiman",
         appliedFor: "Mechanic",
         experience: "6 years",
@@ -170,8 +513,10 @@ const ServiceProviders = () => {
         phone: "+234-569800345",
         email: "suleyi890@gmail.com",
         status: "Waitlisted",
+        additionalInfo: "Has own tools and workshop. Specializes in Japanese cars."
       },
       {
+        id: "P002",
         name: "Fatima Bello",
         appliedFor: "Beautician",
         experience: "4 years",
@@ -179,8 +524,10 @@ const ServiceProviders = () => {
         phone: "+234-701234567",
         email: "fatima.bello@email.com",
         status: "Reviewing",
+        additionalInfo: "Certified beautician with salon experience. Specializes in bridal makeup."
       },
       {
+        id: "P003",
         name: "Musa Abdullahi",
         appliedFor: "Driver",
         experience: "8 years",
@@ -188,6 +535,7 @@ const ServiceProviders = () => {
         phone: "+234-812345678",
         email: "musa.abdullahi@email.com",
         status: "Pending",
+        additionalInfo: "Professional driver with clean record. Familiar with Lagos routes."
       },
     ];
   };
@@ -324,10 +672,13 @@ const ServiceProviders = () => {
 
       {/* POTENTIAL SERVICE PROVIDERS TABLE */}
       <div className="overflow-hidden">
-        <div className="px-4 md:px-6 py-4 border-b border-gray-200">
+        <div className="px-4 md:px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg md:text-xl font-semibold text-gray-800">
             Potential Service Providers ({potentialProvidersLength})
           </h3>
+          <span className="text-sm text-gray-500">
+            Click on providers to verify or reject applications
+          </span>
         </div>
 
         <div className="overflow-x-auto border border-gray-200 rounded-xl">
@@ -350,10 +701,10 @@ const ServiceProviders = () => {
                   Phone
                 </th>
                 <th className="py-3 px-4 text-left text-sm font-medium text-white whitespace-nowrap">
-                  Email
+                  Status
                 </th>
                 <th className="py-3 px-4 text-left text-sm font-medium text-white whitespace-nowrap">
-                  Status
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -364,7 +715,11 @@ const ServiceProviders = () => {
                 ))
               ) : potentialProvidersLength > 0 ? (
                 potentialProviders.map((provider, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  <tr 
+                    key={index} 
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => handleViewProviderDetails(provider)}
+                  >
                     <td className="py-3 px-4 text-sm font-medium text-gray-800 whitespace-nowrap">
                       {safeString(provider.name, 'Unknown Applicant')}
                     </td>
@@ -380,11 +735,19 @@ const ServiceProviders = () => {
                     <td className="py-3 px-4 text-sm text-gray-800 whitespace-nowrap">
                       {safeString(provider.phone, 'Not provided')}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-800 truncate max-w-xs">
-                      {safeString(provider.email, 'Not provided')}
-                    </td>
                     <td className="py-3 px-4 whitespace-nowrap">
                       <StatusBadge status={provider.status} />
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center space-x-2">
+                        <QuickActionButtons provider={provider} />
+                        <ActionMenu 
+                          provider={provider}
+                          onVerify={handleVerifyProvider}
+                          onReject={handleRejectProvider}
+                          onViewDetails={handleViewProviderDetails}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -399,6 +762,16 @@ const ServiceProviders = () => {
           </table>
         </div>
       </div>
+
+      {/* Verification Modal */}
+      {showVerificationModal && (
+        <VerificationModal
+          provider={selectedProvider}
+          onClose={() => setShowVerificationModal(false)}
+          onVerify={handleVerifyProvider}
+          onReject={handleRejectProvider}
+        />
+      )}
     </div>
   );
 };

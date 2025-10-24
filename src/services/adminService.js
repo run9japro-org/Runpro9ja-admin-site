@@ -305,19 +305,41 @@ export const getAccounts = async (type = 'users', page = 1, limit = 13, search =
 };
 
 // Delete Accounts
+// In your adminService.js - update the deleteAccounts function
 export const deleteAccounts = async (accountIds) => {
+  const token = localStorage.getItem("token");
+  
+  // 🔍 Add these debug logs
+  console.log("📤 deleteAccounts called with:", accountIds);
+  console.log("📤 accountIds type:", typeof accountIds);
+  console.log("📤 Is array?:", Array.isArray(accountIds));
+  console.log("📤 Array contents:", JSON.stringify(accountIds));
+  
   try {
-    const token = localStorage.getItem("token");
-    const response = await axios.delete(`${API_URL}/admin/accounts`, {
+    const payload = { accountIds };
+    console.log("📤 Sending payload:", JSON.stringify(payload));
+    
+    const res = await axios.delete(`${API_URL}/admin/accounts`, {
       headers: { Authorization: `Bearer ${token}` },
-      data: { accountIds }
+      data: payload,
     });
-    return response.data;
-  } catch (error) {
-    console.error('deleteAccounts error:', error);
-    throw error;
+    
+    console.log("✅ deleteAccounts response:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ deleteAccounts error:", err.response?.data || err);
+    console.error("❌ Full error:", err);
+    throw err;
   }
 };
+// Get support conversations for admin dashboard
+export const getSupportConversations = async () => {
+  const response = await fetch(`${API_BASE}/conversations`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  return response.json();
+};
+
 
 // Update Account
 export const updateAccount = async (accountId, updateData) => {
@@ -330,6 +352,48 @@ export const updateAccount = async (accountId, updateData) => {
     return response.data;
   } catch (error) {
     console.error('updateAccount error:', error);
+    throw error;
+  }
+};
+// Get customers for chat list
+export const getSupportCustomers = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/conversations`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    throw error;
+  }
+};
+
+// Get messages with specific customer
+export const getCustomerConversation = async (customerId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/conversation/${customerId}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching conversation:', error);
+    throw error;
+  }
+};
+
+// Send message to customer
+export const sendMessageToCustomer = async (customerId, message) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/send-to-customer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add auth token
+      },
+      body: JSON.stringify({ customerId, message })
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error sending message:', error);
     throw error;
   }
 };
