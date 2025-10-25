@@ -1,4 +1,5 @@
 import React from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import image from "../assets/logo.png";
 import icon1 from "../assets/icons/dashboard-icon.png";
 import icon2 from "../assets/icons/services.png";
@@ -11,32 +12,33 @@ import icon8 from "../assets/icons/complaint.png";
 import icon9 from "../assets/icons/logout.png";
 
 const Sidebar = ({
-  activePage,
-  setActivePage,
   sidebarOpen,
   setSidebarOpen,
   onLogout // Add this prop for logout handling
 }) => {
-  // Main navigation items
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Main navigation items with proper routes
   const mainItems = [
-    { id: "dashboard", label: "Dashboard", icon: icon1 },
-    { id: "services", label: "Services", icon: icon2 },
-    { id: "delivery", label: "Delivery tracking", icon: icon3 },
-    { id: "providers", label: "Service Providers", icon: icon4 },
-    { id: "support", label: "Customer Support Team", icon: icon5 },
-    { id: "payments", label: "Payment History", icon: icon6 },
+    { id: "dashboard", label: "Dashboard", icon: icon1, path: "/dashboard" },
+    { id: "services", label: "Services", icon: icon2, path: "/services" },
+    { id: "delivery", label: "Delivery tracking", icon: icon3, path: "/delivery" },
+    { id: "providers", label: "Service Providers", icon: icon4, path: "/providers" },
+    { id: "support", label: "Customer Support Team", icon: icon5, path: "/support" },
+    { id: "payments", label: "Payment History", icon: icon6, path: "/payments" },
   ];
 
-  // Settings navigation items
+  // Settings navigation items with proper routes
   const settingsItems = [
-    { id: "accounts", label: "Accounts", icon: icon7 },
-    { id: "complaint", label: "Complaint", icon: icon8 },
-    { id: "logout", label: "Log out", icon: icon9 },
+    { id: "accounts", label: "Accounts", icon: icon7, path: "/accounts" },
+    { id: "complaint", label: "Complaint", icon: icon8, path: "/complaints" },
+    { id: "logout", label: "Log out", icon: icon9, path: "/logout" },
   ];
 
   const handleLogout = async () => {
     try {
-      // Call the parent component's logout handler
+      // Call the parent component's logout handler if provided
       if (onLogout) {
         await onLogout();
       } else {
@@ -64,44 +66,51 @@ const Sidebar = ({
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
     
-    // Redirect to login page
-    window.location.href = "/login";
+    // Redirect to login page using navigate
+    navigate("/");
   };
 
-  const handleNavigation = (item) => {
-    if (item.id === "logout") {
-      handleLogout();
-    } else {
-      setActivePage(item.id);
-      setSidebarOpen(false);
-    }
+  const isActive = (path) => {
+    return location.pathname === path;
   };
 
   const MenuSection = ({ title, items, showDivider = false }) => (
-    <div
-      className={`${
-        showDivider ? "border-t  pt-4 mt-4" : ""
-      }`}
-    >
+    <div className={showDivider ? "border-t pt-4 mt-4" : ""}>
       {title && (
-        <p className="text-gray-200 text-opacity-70 text-lg font-medium  tracking-wider px-6 py-2">
+        <p className="text-gray-200 text-opacity-70 text-lg font-medium tracking-wider px-6 py-2">
           {title}
         </p>
       )}
-      {items.map((item) => (
-        <button
-          key={item.id}
-          onClick={() => handleNavigation(item)}
-          className={`w-full cursor-pointer flex items-center text-md pl-8 py-3 text-left transition-colors duration-200 hover:bg-opacity-10 ${
-            activePage === item.id
-              ? "  text-gray-200  bg-primary rounded-2xl "
-              : "text-gray-200 text-opacity-90"
-          } ${item.id === "logout" ? "text-gray-200 hover:text-red-200" : ""}`}
-        >
-          <img src={item.icon} alt={item.label} className="w-6 h-6 mr-3" />
-          <span className="text-md ">{item.label}</span>
-        </button>
-      ))}
+      {items.map((item) => {
+        if (item.id === "logout") {
+          return (
+            <button
+              key={item.id}
+              onClick={handleLogout}
+              className="w-full cursor-pointer flex items-center text-md pl-8 py-3 text-left transition-colors duration-200 hover:bg-opacity-10 text-gray-200 hover:text-red-200"
+            >
+              <img src={item.icon} alt={item.label} className="w-6 h-6 mr-3" />
+              <span className="text-md">{item.label}</span>
+            </button>
+          );
+        }
+
+        return (
+          <Link
+            key={item.id}
+            to={item.path}
+            onClick={() => setSidebarOpen(false)}
+            className={`w-full cursor-pointer flex items-center text-md pl-8 py-3 text-left transition-colors duration-200 hover:bg-opacity-10 ${
+              isActive(item.path)
+                ? "text-gray-200 bg-primary rounded-2xl"
+                : "text-gray-200 text-opacity-90"
+            }`}
+          >
+            <img src={item.icon} alt={item.label} className="w-6 h-6 mr-3" />
+            <span className="text-md">{item.label}</span>
+          </Link>
+        );
+      })}
     </div>
   );
 
@@ -117,13 +126,15 @@ const Sidebar = ({
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-68 bg-primary shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0  ${
+        className={`fixed inset-y-0 left-0 z-30 w-68 bg-primary shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Logo Section */}
-        <div className="flex items-center justify-start  py-6 px-8">
-          <img src={image} alt="run pro logo" className="h-24 w-24" />
+        <div className="flex items-center justify-start py-6 px-8">
+          <Link to="/dashboard" onClick={() => setSidebarOpen(false)}>
+            <img src={image} alt="run pro logo" className="h-24 w-24" />
+          </Link>
         </div>
 
         {/* Navigation Sections */}
@@ -135,7 +146,7 @@ const Sidebar = ({
         </div>
 
         {/* Settings Section at Bottom */}
-        <div className=" border-opacity-20  md:pl-4">
+        <div className="border-opacity-20 md:pl-4">
           <MenuSection title="Settings" items={settingsItems} />
         </div>
       </div>

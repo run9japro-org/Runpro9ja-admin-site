@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, ChevronDown, Calendar, Filter } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://runpro9ja-pxqoa.ondigitalocean.app/api';
 
 export default function ComplaintsManagement() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -14,7 +14,7 @@ export default function ComplaintsManagement() {
     fetchStats();
   }, [filterStatus]);
 
-  const fetchComplaints = async () => {
+  const fetchComplaints = async () => {z
     try {
       setLoading(true);
       const status = filterStatus === 'all' ? '' : filterStatus;
