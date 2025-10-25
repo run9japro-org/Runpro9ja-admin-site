@@ -19,7 +19,7 @@ const Services = () => {
         // Fetch service requests
         const requestsResponse = await getServiceRequests(50, filterStatus);
         console.log("Service requests response:", requestsResponse); // Debug log
-        
+
         if (requestsResponse && requestsResponse.success) {
           setServiceRequests(requestsResponse.serviceRequests || []);
         } else {
@@ -29,7 +29,7 @@ const Services = () => {
         // Fetch delivery details
         const deliveriesResponse = await getDeliveryDetails(20);
         console.log("Delivery details response:", deliveriesResponse); // Debug log
-        
+
         if (deliveriesResponse && deliveriesResponse.success) {
           setDeliveryDetails(deliveriesResponse.deliveryDetails || []);
         } else {
@@ -142,20 +142,8 @@ const Services = () => {
                 <Eye className="w-4 h-4 mr-2" />
                 View Details
               </button>
-              <button
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Order
-              </button>
-              <button
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <Truck className="w-4 h-4 mr-2" />
-                Track Delivery
-              </button>
+
+
             </div>
           </div>
         )}
@@ -251,7 +239,14 @@ const Services = () => {
               >
                 Close
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
+              <button
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                onClick={() => {
+                  // Temporary workaround - reload the page with delivery as active page
+                  window.location.href = '/delivery';
+                }
+              }
+              >
                 Track Delivery
               </button>
             </div>
@@ -432,9 +427,9 @@ const Services = () => {
                           {request.dueDate}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <ActionMenu 
-                            order={{ ...request, orderId: request.requestId }} 
-                            type="service" 
+                          <ActionMenu
+                            order={{ ...request, orderId: request.requestId }}
+                            type="service"
                             onViewDetails={handleViewOrderDetails}
                           />
                         </td>
@@ -534,9 +529,9 @@ const Services = () => {
                         {delivery.deliveredTo}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <ActionMenu 
-                          order={delivery} 
-                          type="delivery" 
+                        <ActionMenu
+                          order={delivery}
+                          type="delivery"
                           onViewDetails={handleViewOrderDetails}
                         />
                       </td>
@@ -557,9 +552,9 @@ const Services = () => {
 
       {/* Order Details Modal */}
       {showOrderDetails && (
-        <OrderDetailsModal 
-          order={selectedOrder} 
-          onClose={() => setShowOrderDetails(false)} 
+        <OrderDetailsModal
+          order={selectedOrder}
+          onClose={() => setShowOrderDetails(false)}
         />
       )}
     </div>
