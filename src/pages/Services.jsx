@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getServiceRequests, getDeliveryDetails } from "../services/adminService";
 import { MoreVertical, Eye, Edit, Truck } from "lucide-react";
-
+import { useNavigate } from 'react-router-dom';
 const Services = () => {
   const [serviceRequests, setServiceRequests] = useState([]);
   const [deliveryDetails, setDeliveryDetails] = useState([]);
@@ -12,7 +12,11 @@ const Services = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
+  const navigate = useNavigate();
 
+  const handleDeliveryClick = () => {
+    navigate('/delivery');
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -241,11 +245,7 @@ const Services = () => {
               </button>
               <button
                 className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                onClick={() => {
-                  // Temporary workaround - reload the page with delivery as active page
-                  window.location.href = '/delivery';
-                }
-              }
+                onClick={handleDeliveryClick}
               >
                 Track Delivery
               </button>
