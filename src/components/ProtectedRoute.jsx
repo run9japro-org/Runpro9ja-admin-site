@@ -1,25 +1,25 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
-/**
- * Usage:
- * <Route path="/dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>} />
- */
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isAuthorized } = useAuth();
+  const location = useLocation();
+
+  // Show loading state while checking authentication
+  if (isAuthenticated === null) {
+    return <div>Loading...</div>;
+  }
 
   if (!isAuthenticated) {
-    // not logged in
-    return <Navigate to="/" replace />;
+    // Redirect to login with return url
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   if (!isAuthorized) {
-    // logged in but role not allowed
-    // optionally logout
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    return <Navigate to="/" replace state={{ error: "Access denied" }} />;
+    return <Navigate to="/login" replace state={{ error: "Access denied" }} />;
   }
 
   return children;
