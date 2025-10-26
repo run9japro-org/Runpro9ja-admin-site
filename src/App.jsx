@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Accounts from "./pages/Accounts";
 import ComplaintsManagement from "./pages/Complaint.jsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.jsx"
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
@@ -20,6 +21,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         
         {/* All protected routes under main layout */}
