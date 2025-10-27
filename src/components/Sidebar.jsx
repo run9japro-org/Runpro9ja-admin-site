@@ -1,5 +1,9 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { 
+  ClipboardList, // Icon for Assign page
+  LogOut // You can replace other icons too if needed
+} from "lucide-react";
 import image from "../assets/logo.png";
 import icon1 from "../assets/icons/dashboard-icon.png";
 import icon2 from "../assets/icons/services.png";
@@ -14,7 +18,7 @@ import icon9 from "../assets/icons/logout.png";
 const Sidebar = ({
   sidebarOpen,
   setSidebarOpen,
-  onLogout // Add this prop for logout handling
+  onLogout
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -24,6 +28,7 @@ const Sidebar = ({
     { id: "dashboard", label: "Dashboard", icon: icon1, path: "/dashboard" },
     { id: "services", label: "Services", icon: icon2, path: "/services" },
     { id: "delivery", label: "Delivery tracking", icon: icon3, path: "/delivery" },
+    { id: "assign", label: "Assign", icon: "clipboard-list", path: "/assign" }, // Using Lucide icon
     { id: "providers", label: "Service Providers", icon: icon4, path: "/providers" },
     { id: "support", label: "Customer Support Team", icon: icon5, path: "/support" },
     { id: "payments", label: "Payment History", icon: icon6, path: "/payments" },
@@ -38,11 +43,9 @@ const Sidebar = ({
 
   const handleLogout = async () => {
     try {
-      // Call the parent component's logout handler if provided
       if (onLogout) {
         await onLogout();
       } else {
-        // Fallback logout implementation
         await defaultLogout();
       }
     } catch (error) {
@@ -51,27 +54,35 @@ const Sidebar = ({
   };
 
   const defaultLogout = async () => {
-    // Clear localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
-    
-    // Clear sessionStorage
     sessionStorage.clear();
-    
-    // If you're using cookies, clear them too
     document.cookie.split(";").forEach((c) => {
       document.cookie = c
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-    
-    // Redirect to login page using navigate
     navigate("/");
   };
 
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  // Function to render the appropriate icon
+  const renderIcon = (icon, className = "w-6 h-6 mr-3") => {
+    if (typeof icon === 'string') {
+      switch (icon) {
+        case 'clipboard-list':
+          return <ClipboardList className={className} />;
+        case 'log-out':
+          return <LogOut className={className} />;
+        default:
+          return <img src={icon} alt="" className={className} />;
+      }
+    }
+    return <img src={icon} alt="" className={className} />;
   };
 
   const MenuSection = ({ title, items, showDivider = false }) => (
@@ -89,7 +100,7 @@ const Sidebar = ({
               onClick={handleLogout}
               className="w-full cursor-pointer flex items-center text-md pl-8 py-3 text-left transition-colors duration-200 hover:bg-opacity-10 text-gray-200 hover:text-red-200"
             >
-              <img src={item.icon} alt={item.label} className="w-6 h-6 mr-3" />
+              {renderIcon(item.icon)}
               <span className="text-md">{item.label}</span>
             </button>
           );
@@ -106,7 +117,7 @@ const Sidebar = ({
                 : "text-gray-200 text-opacity-90"
             }`}
           >
-            <img src={item.icon} alt={item.label} className="w-6 h-6 mr-3" />
+            {renderIcon(item.icon)}
             <span className="text-md">{item.label}</span>
           </Link>
         );

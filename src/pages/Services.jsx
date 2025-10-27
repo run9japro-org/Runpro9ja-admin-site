@@ -14,9 +14,16 @@ const Services = () => {
   const [activeMenu, setActiveMenu] = useState(null);
   const navigate = useNavigate();
 
-  const handleDeliveryClick = () => {
-    navigate('/delivery');
-  };
+  const handleDeliveryClick = (order) => {
+  // Store the order data to be used in the Delivery component
+  localStorage.setItem('trackingOrder', JSON.stringify({
+    orderId: order.orderId,
+    customerName: order.orderBy || order.customerName,
+    address: order.pickupDestination,
+    serviceType: order.deliveryType || order.serviceType
+  }));
+  navigate('/delivery');
+};
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -126,6 +133,7 @@ const Services = () => {
       onViewDetails(order);
       setActiveMenu(null);
     };
+    
 
     return (
       <div className="relative">

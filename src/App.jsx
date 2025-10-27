@@ -14,6 +14,7 @@ import Accounts from "./pages/Accounts";
 import ComplaintsManagement from "./pages/Complaint.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx"
 import DeleteAccountPage from "./pages/Delete.jsx";
+import Assign from "./pages/Assign.jsx";
 function App() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
@@ -58,6 +59,7 @@ const Layout = ({ sidebarOpen, setSidebarOpen }) => {
             <Route path="/payments" element={<Payments />} />
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/complaints" element={<ComplaintsManagement />} />
+            <Route path="/assign" element={<Assign />} />
             
             {/* Catch all for protected routes */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
