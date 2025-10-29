@@ -179,28 +179,54 @@ export const getPotentialProviders = async (limit = 20) => {
 };
 
 // Delivery Details
-export const getDeliveryDetails = async (limit = 20) => {
+// Delivery Details - FIXED VERSION
+export const getDeliveryDetails = async (limit = 20, page = 1) => {
   try {
     const token = localStorage.getItem("token");
+    console.log("📡 Fetching delivery details with limit:", limit, "page:", page);
+    
     const response = await axios.get(`${API_URL}/admin/delivery-details`, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { limit }
+      params: { 
+        limit: limit.toString(),
+        page: page.toString()
+      }
     });
     
-    // Ensure we always return a valid structure
-    if (response.data && typeof response.data === 'object') {
-      return response.data;
+    console.log("📡 Delivery details API response:", response.data);
+    
+    // Handle both success and error cases properly
+    if (response.data && response.data.success) {
+      return {
+        success: true,
+        deliveryDetails: Array.isArray(response.data.deliveryDetails) 
+          ? response.data.deliveryDetails 
+          : [],
+        total: response.data.total || 0,
+        pagination: response.data.pagination || {
+          current: parseInt(page),
+          pages: 1,
+          total: response.data.total || 0
+        }
+      };
     } else {
+      console.warn("⚠️ Delivery details API returned non-success response");
       return {
         success: false,
-        deliveryDetails: []
+        deliveryDetails: [],
+        total: 0,
+        message: response.data?.message || "Failed to fetch delivery details"
       };
     }
   } catch (error) {
-    console.error('getDeliveryDetails error:', error);
+    console.error('❌ getDeliveryDetails error:', error);
+    console.error('Error response:', error.response?.data);
+    
     return {
       success: false,
-      deliveryDetails: []
+      deliveryDetails: [],
+      total: 0,
+      message: error.response?.data?.message || "Network error fetching delivery details"
     };
   }
 };
