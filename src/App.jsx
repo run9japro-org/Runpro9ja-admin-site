@@ -15,6 +15,7 @@ import ComplaintsManagement from "./pages/Complaint.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx"
 import DeleteAccountPage from "./pages/Delete.jsx";
 import Assign from "./pages/Assign.jsx";
+import SupportPage from "./pages/SupportCustomer.jsx";
 function App() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
@@ -24,7 +25,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/delete-account" element={<DeleteAccountPage />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/support/customer" element={<SupportPage />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         
         {/* All protected routes under main layout */}
         <Route
