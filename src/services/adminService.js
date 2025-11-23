@@ -321,6 +321,19 @@ export const getPaymentsOutflow = async (limit = 50) => {
     throw error;
   }
 };
+export const getPendingPayments = async (limit = 50) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/admin/get-payment`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { limit }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('getPaymentsOutflow error:', error);
+    throw error;
+  }
+};
 
 // Add these to your adminService.js
 
