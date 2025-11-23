@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Search, Trash2, CheckSquare, Square } from 'lucide-react';
+import { Plus, X, Search, Trash2, CheckSquare, Square, Key, Mail } from 'lucide-react';
 import { getAccounts, deleteAccounts } from '../services/adminService';
 
 const AccountsManagement = () => {
@@ -7,13 +7,16 @@ const AccountsManagement = () => {
   const [selectedAccounts, setSelectedAccounts] = useState(new Set());
   const [activeTab, setActiveTab] = useState('customers');
   const [showAddAdmin, setShowAddAdmin] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [selectedAccountForPassword, setSelectedAccountForPassword] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [newAdmin, setNewAdmin] = useState({
     username: '',
     fullName: '',
-    role: 'admin_customer_service' // Changed to match backend
+    role: 'admin_customer_service'
   });
   const [createMessage, setCreateMessage] = useState('');
+  const [passwordResetMessage, setPasswordResetMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -59,77 +62,128 @@ const AccountsManagement = () => {
     return () => clearTimeout(timeoutId);
   }, [searchTerm]);
 
-  // Fixed admin creation with correct role values
- // Fixed admin creation function
-const handleCreateAdmin = async (e) => {
-  e.preventDefault();
-  try {
-    setCreateMessage('');
-    setLoading(true);
-    
-    const token = localStorage.getItem("token");
-    const API_URL = "https://runpro9ja-pxqoa.ondigitalocean.app/api";
-    
-    // Validate inputs
-    if (!newAdmin.username.trim() || !newAdmin.fullName.trim()) {
-      setCreateMessage('❌ Username and full name are required');
-      setLoading(false);
-      return;
-    }
-
-    // Prepare the request body exactly as backend expects
-    const adminData = {
-      username: newAdmin.username.trim(),
-      fullName: newAdmin.fullName.trim(),
-      role: newAdmin.role
-    };
-    
-    console.log('📤 Creating admin with data:', adminData);
-    console.log('🔑 Token exists:', !!token);
-    console.log('🌐 Endpoint:', `${API_URL}/admin`);
-    
-    const res = await fetch(`${API_URL}/admin`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(adminData)
-    });
-
-    console.log('📥 Response status:', res.status);
-    
-    const data = await res.json();
-    console.log('📥 Full response:', data);
-
-    if (res.ok) {
-      setCreateMessage(`✅ ${data.message} Temporary password: ${data.data.temporaryPassword}`);
-      setShowAddAdmin(false);
-      setNewAdmin({ 
-        username: '', 
-        fullName: '', 
-        role: 'admin_customer_service'
-      });
-      fetchAccounts(activeTab, searchTerm);
-    } else {
-      // More detailed error messages
-      if (res.status === 403) {
-        setCreateMessage('❌ You are not authorized to create admins. Only SUPER_ADMIN or HEAD_ADMIN can create admins.');
-      } else if (res.status === 400) {
-        setCreateMessage(`❌ Validation error: ${data.message}`);
-      } else if (res.status === 409) {
-        setCreateMessage(`❌ Username already exists: ${data.message}`);
-      } else {
-        setCreateMessage(`❌ ${data.message || `Server error (${res.status})`}`);
+  // Fixed admin creation function
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    try {
+      setCreateMessage('');
+      setLoading(true);
+      
+      const token = localStorage.getItem("token");
+      const API_URL = "https://runpro9ja-pxqoa.ondigitalocean.app/api";
+      
+      // Validate inputs
+      if (!newAdmin.username.trim() || !newAdmin.fullName.trim()) {
+        setCreateMessage('❌ Username and full name are required');
+        setLoading(false);
+        return;
       }
+
+      // Prepare the request body exactly as backend expects
+      const adminData = {
+        username: newAdmin.username.trim(),
+        fullName: newAdmin.fullName.trim(),
+        role: newAdmin.role
+      };
+      
+      console.log('📤 Creating admin with data:', adminData);
+      console.log('🔑 Token exists:', !!token);
+      console.log('🌐 Endpoint:', `${API_URL}/admin`);
+      
+      const res = await fetch(`${API_URL}/admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(adminData)
+      });
+
+      console.log('📥 Response status:', res.status);
+      
+      const data = await res.json();
+      console.log('📥 Full response:', data);
+
+      if (res.ok) {
+        setCreateMessage(`✅ ${data.message} Temporary password: ${data.data.temporaryPassword}`);
+        setShowAddAdmin(false);
+        setNewAdmin({ 
+          username: '', 
+          fullName: '', 
+          role: 'admin_customer_service'
+        });
+        fetchAccounts(activeTab, searchTerm);
+      } else {
+        // More detailed error messages
+        if (res.status === 403) {
+          setCreateMessage('❌ You are not authorized to create admins. Only SUPER_ADMIN or HEAD_ADMIN can create admins.');
+        } else if (res.status === 400) {
+          setCreateMessage(`❌ Validation error: ${data.message}`);
+        } else if (res.status === 409) {
+          setCreateMessage(`❌ Username already exists: ${data.message}`);
+        } else {
+          setCreateMessage(`❌ ${data.message || `Server error (${res.status})`}`);
+        }
+      }
+    } catch (err) {
+      console.error('❌ Admin creation error:', err);
+      setCreateMessage(`❌ Network error: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('❌ Admin creation error:', err);
-    setCreateMessage(`❌ Network error: ${err.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  // Forgot Password function
+  const handleForgotPassword = async (email) => {
+    try {
+      setPasswordResetMessage('');
+      setLoading(true);
+      
+      const API_URL = "https://runpro9ja-pxqoa.ondigitalocean.app/api";
+      
+      console.log('🔐 Initiating password reset for:', email);
+      
+      const res = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+
+      console.log('📥 Password reset response status:', res.status);
+      
+      const data = await res.json();
+      console.log('📥 Password reset response:', data);
+
+      if (res.ok) {
+        setPasswordResetMessage(`✅ Password reset link sent to ${email}`);
+        setShowForgotPassword(false);
+        setSelectedAccountForPassword(null);
+      } else {
+        setPasswordResetMessage(`❌ ${data.message || 'Failed to send reset email'}`);
+      }
+    } catch (err) {
+      console.error('❌ Password reset error:', err);
+      setPasswordResetMessage(`❌ Network error: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Open forgot password modal
+  const openForgotPassword = (account) => {
+    setSelectedAccountForPassword(account);
+    setShowForgotPassword(true);
+    setPasswordResetMessage('');
+  };
+
+  // Close forgot password modal
+  const closeForgotPassword = () => {
+    setShowForgotPassword(false);
+    setSelectedAccountForPassword(null);
+    setPasswordResetMessage('');
+  };
 
   // Selection handlers
   const toggleSelectAll = () => {
@@ -236,6 +290,18 @@ const handleCreateAdmin = async (e) => {
     return roleMap[role] || role;
   };
 
+  // Check if account is eligible for password reset (admin accounts only)
+  const canResetPassword = (account) => {
+    const adminRoles = [
+      'customer_service',
+      'agent_service', 
+      'super_admin',
+      'admin_head',
+      'representative'
+    ];
+    return adminRoles.includes(account.role) && account.email;
+  };
+
   // Debug function to check account data
   const debugAccounts = () => {
     console.log('🔍 All fetched accounts:', accounts);
@@ -243,7 +309,9 @@ const handleCreateAdmin = async (e) => {
       console.log(`Account: ${acc.username}`, {
         id: acc._id,
         role: acc.role,
-        type: typeof acc.role
+        type: typeof acc.role,
+        email: acc.email,
+        canResetPassword: canResetPassword(acc)
       });
     });
   };
@@ -290,14 +358,13 @@ const handleCreateAdmin = async (e) => {
         {/* Tabs */}
         <div className="flex space-x-3 mb-6 border-b border-slate-200 overflow-x-auto">
           {[
-  { key: 'customers', label: 'Customers' },
-  { key: 'service-providers', label: 'Agents' },
-  { key: 'representative', label: 'Representatives' },
-  { key: 'admins', label: 'Admins' },
-  { key: 'customer-care', label: 'Customer Service Admins' },
-  { key: 'agent-service', label: 'Agent Service Admins' },
-].map((tab) => (
-
+            { key: 'customers', label: 'Customers' },
+            { key: 'service-providers', label: 'Agents' },
+            { key: 'representative', label: 'Representatives' },
+            { key: 'admins', label: 'Admins' },
+            { key: 'customer-care', label: 'Customer Service Admins' },
+            { key: 'agent-service', label: 'Agent Service Admins' },
+          ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
@@ -450,6 +517,19 @@ const handleCreateAdmin = async (e) => {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex justify-end space-x-2">
+                          {/* Forgot Password Button - Only show for admin accounts with email */}
+                          {canResetPassword(acc) && (
+                            <button
+                              onClick={() => openForgotPassword(acc)}
+                              disabled={loading}
+                              className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all text-sm disabled:opacity-50"
+                              title="Send password reset email"
+                            >
+                              <Key className="w-3 h-3" />
+                              <span>Reset Password</span>
+                            </button>
+                          )}
+                          
                           <button
                             onClick={() => handleDeleteSingle(acc._id)}
                             disabled={loading}
@@ -549,6 +629,81 @@ const handleCreateAdmin = async (e) => {
                 createMessage.includes('✅') ? 'text-green-600' : 'text-red-600'
               }`}>
                 {createMessage}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && selectedAccountForPassword && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6 relative animate-scaleIn">
+            <button
+              onClick={closeForgotPassword}
+              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <Key className="w-6 h-6 text-blue-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-slate-800">
+                Reset Password
+              </h2>
+            </div>
+
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center space-x-2 text-blue-700">
+                <Mail className="w-4 h-4" />
+                <span className="font-medium">Sending reset link to:</span>
+              </div>
+              <p className="text-blue-800 font-semibold mt-1">
+                {selectedAccountForPassword.email}
+              </p>
+              <p className="text-blue-600 text-sm mt-1">
+                {selectedAccountForPassword.fullName} • {getRoleDisplayName(selectedAccountForPassword.role)}
+              </p>
+            </div>
+
+            <p className="text-slate-600 mb-6">
+              This will send a password reset link to the admin's email address. 
+              They can use this link to set a new password.
+            </p>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={closeForgotPassword}
+                className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleForgotPassword(selectedAccountForPassword.email)}
+                disabled={loading}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    <span>Send Reset Link</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {passwordResetMessage && (
+              <p className={`mt-4 text-sm text-center ${
+                passwordResetMessage.includes('✅') ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {passwordResetMessage}
               </p>
             )}
           </div>
