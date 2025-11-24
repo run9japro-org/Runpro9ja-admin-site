@@ -133,22 +133,50 @@ const AccountsManagement = () => {
     }
   };
 
-  // Forgot Password function
-  const handleForgotPassword = async (email) => {
+  // Forgot Password function - UPDATED to send to super admin
+  const handleForgotPassword = async (account) => {
     try {
       setPasswordResetMessage('');
       setLoading(true);
       
       const API_URL = "https://runpro9ja-pxqoa.ondigitalocean.app/api";
       
-      console.log('🔐 Initiating password reset for:', email);
+      console.log('🔐 Initiating password reset for:', account.username);
+      console.log('👤 Account details:', {
+        username: account.username,
+        role: account.role,
+        hasEmail: !!account.email
+      });
+      
+      // Determine which email to send to
+      let targetEmail = account.email;
+      let isSuperAdminTarget = false;
+      
+      // If the account doesn't have an email (Customer Service Admin or Agent Service Admin),
+      // we'll send the reset request to the super admin's email
+      if (!targetEmail) {
+        // In a real implementation, you might want to fetch the super admin's email
+        // For now, we'll use a placeholder or you can set a default super admin email
+        targetEmail = "Mayorichy6@gmail.com"; // Replace with your super admin email
+        isSuperAdminTarget = true;
+        console.log('📧 No email found for account, sending to super admin:', targetEmail);
+      }
+      
+      const requestBody = {
+        email: targetEmail,
+        adminUsername: account.username, // Include the admin username for context
+        adminRole: account.role,
+        isSuperAdminTarget: isSuperAdminTarget
+      };
+      
+      console.log('📤 Sending password reset request:', requestBody);
       
       const res = await fetch(`${API_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify(requestBody)
       });
 
       console.log('📥 Password reset response status:', res.status);
@@ -157,7 +185,11 @@ const AccountsManagement = () => {
       console.log('📥 Password reset response:', data);
 
       if (res.ok) {
-        setPasswordResetMessage(`✅ Password reset link sent to ${email}`);
+        if (isSuperAdminTarget) {
+          setPasswordResetMessage(`✅ Password reset link sent to Super Admin for ${account.username}`);
+        } else {
+          setPasswordResetMessage(`✅ Password reset link sent to ${account.email}`);
+        }
         setShowForgotPassword(false);
         setSelectedAccountForPassword(null);
       } else {
@@ -290,16 +322,30 @@ const AccountsManagement = () => {
     return roleMap[role] || role;
   };
 
-  // Check if account is eligible for password reset (admin accounts only)
+  // Check if account is eligible for password reset (Customer Service Admins and Agent Service Admins only)
   const canResetPassword = (account) => {
-    const adminRoles = [
-      'customer_service',
-      'agent_service', 
-      'super_admin',
-      'admin_head',
-      'representative'
+    const allowedRoles = [
+      'admin_customer_service',  // Customer Service Admin
+      'admin_agent_service'      // Agent Service Admin
     ];
-    return adminRoles.includes(account.role) && account.email;
+    return allowedRoles.includes(account.role);
+  };
+
+  // Get the target email for password reset
+  const getTargetEmailInfo = (account) => {
+    if (account.email) {
+      return {
+        email: account.email,
+        isSuperAdmin: false,
+        message: `Will be sent to: ${account.email}`
+      };
+    } else {
+      return {
+        email: "Mayorichy6@gmail.com", // Your super admin email
+        isSuperAdmin: true,
+        message: `No email found for this admin. Reset link will be sent to Super Admin account.`
+      };
+    }
   };
 
   // Debug function to check account data
@@ -311,7 +357,8 @@ const AccountsManagement = () => {
         role: acc.role,
         type: typeof acc.role,
         email: acc.email,
-        canResetPassword: canResetPassword(acc)
+        canResetPassword: canResetPassword(acc),
+        targetEmail: getTargetEmailInfo(acc)
       });
     });
   };
@@ -486,6 +533,9 @@ const AccountsManagement = () => {
                           {acc.email && acc.username && (
                             <div className="text-xs text-slate-500">{acc.email}</div>
                           )}
+                          {!acc.email && (
+                            <div className="text-xs text-orange-500">No email address</div>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 px-4">{acc.fullName || 'N/A'}</td>
@@ -517,7 +567,7 @@ const AccountsManagement = () => {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex justify-end space-x-2">
-                          {/* Forgot Password Button - Only show for admin accounts with email */}
+                          {/* Forgot Password Button - Only show for Customer Service Admins and Agent Service Admins */}
                           {canResetPassword(acc) && (
                             <button
                               onClick={() => openForgotPassword(acc)}
@@ -656,21 +706,32 @@ const AccountsManagement = () => {
             </div>
 
             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center space-x-2 text-blue-700">
+              <div className="flex items-center space-x-2 text-blue-700 mb-2">
                 <Mail className="w-4 h-4" />
-                <span className="font-medium">Sending reset link to:</span>
+                <span className="font-medium">Password Reset for:</span>
               </div>
-              <p className="text-blue-800 font-semibold mt-1">
-                {selectedAccountForPassword.email}
+              <p className="text-blue-800 font-semibold">
+                {selectedAccountForPassword.username}
               </p>
-              <p className="text-blue-600 text-sm mt-1">
+              <p className="text-blue-600 text-sm">
                 {selectedAccountForPassword.fullName} • {getRoleDisplayName(selectedAccountForPassword.role)}
               </p>
+              
+              <div className="mt-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+                <p className="text-yellow-700 text-sm font-medium">
+                  {getTargetEmailInfo(selectedAccountForPassword).message}
+                </p>
+                {getTargetEmailInfo(selectedAccountForPassword).isSuperAdmin && (
+                  <p className="text-yellow-600 text-xs mt-1">
+                    Super Admin will receive the reset link and can assist with password recovery.
+                  </p>
+                )}
+              </div>
             </div>
 
             <p className="text-slate-600 mb-6">
-              This will send a password reset link to the admin's email address. 
-              They can use this link to set a new password.
+              A password reset link will be generated and sent to the appropriate email address. 
+              The admin can use this link to set a new password.
             </p>
 
             <div className="flex space-x-3">
@@ -681,7 +742,7 @@ const AccountsManagement = () => {
                 Cancel
               </button>
               <button
-                onClick={() => handleForgotPassword(selectedAccountForPassword.email)}
+                onClick={() => handleForgotPassword(selectedAccountForPassword)}
                 disabled={loading}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
               >
