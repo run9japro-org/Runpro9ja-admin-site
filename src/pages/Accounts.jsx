@@ -322,13 +322,16 @@ const AccountsManagement = () => {
     return roleMap[role] || role;
   };
 
-  // Check if account is eligible for password reset (Customer Service Admins and Agent Service Admins only)
+  // Check if account is eligible for password reset (ALL admin accounts)
   const canResetPassword = (account) => {
-    const allowedRoles = [
+    const adminRoles = [
       'admin_customer_service',  // Customer Service Admin
-      'admin_agent_service'      // Agent Service Admin
+      'admin_agent_service',     // Agent Service Admin
+      'super_admin',             // Super Admin
+      'admin_head',              // Admin Head
+      'representative'           // Representative
     ];
-    return allowedRoles.includes(account.role);
+    return adminRoles.includes(account.role);
   };
 
   // Get the target email for password reset
@@ -567,7 +570,7 @@ const AccountsManagement = () => {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex justify-end space-x-2">
-                          {/* Forgot Password Button - Only show for Customer Service Admins and Agent Service Admins */}
+                          {/* Forgot Password Button - Only show for ALL admin accounts */}
                           {canResetPassword(acc) && (
                             <button
                               onClick={() => openForgotPassword(acc)}
